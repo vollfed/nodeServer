@@ -2,14 +2,14 @@
   <div class="hello">
     <el-button @click="visible = true">Button</el-button>
     <el-dialog :visible.sync="visible" title="Hello world">
-      <p>Try Element</p>
+      <p>Try me vovec</p>
     </el-dialog>
   </div>
 </template>
 
 <script>
 export default {
-  name: 'HelloWorld',
+  name: 'Hello me',
   props: {
     msg: String
   },
