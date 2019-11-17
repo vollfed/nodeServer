@@ -317,14 +317,15 @@
 		};
 
 		var getSensorData = function (){
-			axios.get('http://localhost:8081/getSensorData')
+			var getUrl = window.location.origin+'/getSensorData'
+			axios.get(getUrl)
 			.then(response=>{
-				debugger; 
+				//debugger; 
 				var sensorData  = response.data;
 				this.updateChart(sensorData);
 			})
 			.catch(err=>{
-				debugger; 
+				//debugger; 
 				console.log("Error getting data!");
 			});
 		};
