@@ -1,6 +1,6 @@
 # description
-Handy way to see sensor data in web. You will need to get MQTT broker first (see another repo)
-You can setup border for sensor,refresh rate and sample length. Bar chart incremrnts only sensor value falls below boder.
+Handy way to see sensor data in web browser. You will need to get MQTT broker to get this working or use public one. ( For custom see another repo).
+You can setup border for sensor value, refresh rate and sample length. Bar chart increments only if sensor value falls below border.
 
 # example
 
