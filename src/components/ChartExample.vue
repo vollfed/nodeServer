@@ -36,6 +36,7 @@
 <script>
 import MyCanvas from './MyCanvas.vue';
 import MyBox from './MyBox.vue';
+import axios from 'axios';
 
 export default {
   name: 'app',
@@ -46,6 +47,7 @@ export default {
 
   data () {
     return {
+      data:[],
       chartValues: [
         {val: 10, color: 'red'},
         {val: 10, color: '#0f0'},
@@ -64,6 +66,13 @@ export default {
     let selectedVal = Math.floor(Math.random() * this.chartValues.length);
     var foo =1;
     setInterval(() => {
+      
+      axios.get('http://localhost:8081/get')
+      .then(response=>{debugger; this.data = response.data; console.log("1"); this.chartValues[1].val=response.data.count})
+      .catch(err=>{debugger; console.log("2");});
+
+      
+      
       // if (Math.random() > 0.995) dir *= -1;
       var goo =1;
       // if (Math.random() > 0.99) selectedVal = Math.floor(Math.random() * this.chartValues.length);
@@ -72,7 +81,7 @@ export default {
       // this.chartValues[selectedVal].val = 
       // this.chartValues[selectedVal].val = Math.min(Math.max(this.chartValues[selectedVal].val + dir * 0.5, 0), 100);
       foo++;
-    }, 16);
+    }, 1000);
   }
 }
 </script>

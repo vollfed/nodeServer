@@ -1,0 +1,368 @@
+<!doctype html>
+<html>
+
+<head>
+	<title>Sensor Chart</title>
+	<script src="/chart.js/dist/Chart.js"></script>
+	<script src="/utils.js"></script>
+	<script src="/chart.js/dist/Chart.min.js"></script>
+	<script src="/axios/dist/axios.js"></script>
+	<link rel="stylesheet" type="text/css" href="/chart.js/dist/Chart.min.css">
+	<style>
+	canvas{
+		-moz-user-select: none;
+		-webkit-user-select: none;
+		-ms-user-select: none;
+	}
+	</style>
+</head>
+
+<body>
+	
+<table>
+  <colgroup>
+    <col span="2" >
+  </colgroup>
+  <tr>
+    <th></th>
+    <th></th>
+    <th></th>
+  </tr>
+  
+  <tr>
+    <td>
+		<div>
+			<canvas id="canvasLine" width="1000" height="400"></canvas>
+		</div>
+	</td>
+    <td>
+		<div>
+			<canvas id="canvasBar" width="400" height="400"></canvas>
+		</div>
+	</td>
+  </tr>
+  
+  <tr>
+    <td></td>
+    <td></td>
+    <td></td>
+   
+ </tr>
+</table>
+
+  <br>
+  <hr>
+  <br>
+  
+  <div width=400px style="padding-left:40px;display: inline-block;width:800px;//background-color:green;">
+	<div style="float:left;width:100px;//background-color:blue">Q\min:</div>
+	<input id="1a" type="number" name="qinterval" >
+	<span id="1a_txt" style="padding-left:400px">0</span>
+  </div>
+  <br>
+  <div width=400px style="padding-left:40px;display: inline-block;width:800px;//background-color:red;">
+	<div style="float:left;width:100px;//background-color:blue">Border:</div>
+	<input id="1b" type="number" name="border">
+	<span id="1b_txt" style="padding-left:400px;">0</span>
+  </div>
+  <br>
+  <div width=400px style="padding-left:40px;display: inline-block;width:800px;//background-color:yellow;">
+	<div style="float:left;width:100px;//background-color:blue">Sample size:</div>
+	<input id="1c" type="number" name="sample" >
+	<span id="1c_txt" style="padding-left:400px;">0</span>
+  </div>
+  
+  <div style="padding-left:40px; padding-top:15px">
+  <button onclick="submit()">Submit</button> 
+  <button onclick="reset()">Reset</button> 
+  </div>
+
+	<script>
+		//var Chart = require('chart.js');	
+		
+		var setSpanText = function(inp1,inp2,inp3){
+		
+			document.getElementById("1a_txt").textContent = inp1;
+			document.getElementById("1b_txt").textContent = inp2;
+			document.getElementById("1c_txt").textContent = inp3;
+			
+			document.getElementById("1a").value = inp1;
+			document.getElementById("1b").value = inp2;
+			document.getElementById("1c").value = inp3;
+			
+		};
+		
+		
+		var arrLen = 180;
+		var borderValue = 500;
+	    var dataBorderArr = Array(arrLen).fill(borderValue);
+		var scensorArr = Array(arrLen).fill(500);
+		var labelArr = Array.from(Array(arrLen).keys())
+		
+		var valueCountArr = [0];
+		var refreshInterval = 0.05;
+		
+		setSpanText(refreshInterval,borderValue,arrLen);
+		
+		var configBar ={
+			type: 'bar',
+			data: {
+				labels: ['Red'],
+				datasets: [{
+					label: 'value count',
+					data: valueCountArr,
+					backgroundColor: [
+						'rgba(255, 99, 132, 0.2)',
+					],
+					borderColor: [
+						'rgba(255, 99, 132, 1)',
+					],
+					borderWidth: 1
+				}]
+			},
+			options: {
+				scales: {
+					xAxes: [{
+						display: true,
+						scaleLabel: {
+							display: true,
+							labelString: 'Color'
+						}
+					}],
+					yAxes: [{
+						ticks: {
+							beginAtZero: true,
+							max: 100
+						},
+						scaleLabel: {
+							display: true,
+							labelString: 'Value'
+						}
+					}]
+				}
+			}			
+		};
+		
+		var configLine = {
+			type: 'line',
+			data: {
+				labels: labelArr,
+				datasets: [{
+					label: 'Sensor data',
+					backgroundColor: window.chartColors.red,
+					borderColor: window.chartColors.red,
+					data: scensorArr,
+					fill: false,
+				}, {
+					label: 'value border',
+					fill: false,
+					backgroundColor: window.chartColors.blue,
+					borderColor: window.chartColors.blue,
+					pointRadius:0,
+					borderDash:[10,10],
+					data: dataBorderArr
+				}]
+			},
+			options: {
+				responsive: true,
+				title: {
+					display: false,
+					text: 'Data'
+				},
+				tooltips: {
+					mode: 'index',
+					intersect: false,
+				},
+				hover: {
+					mode: 'nearest',
+					intersect: true
+				},
+				scales: {
+					xAxes: [{
+						display: true,
+						scaleLabel: {
+							display: true,
+							labelString: 'Time'
+						}
+					}],
+					yAxes: [{
+						display: true,
+						ticks:{
+							max: 1050,
+							min: 0
+						},
+						scaleLabel: {
+							display: true,
+							labelString: 'Value'
+						}
+					}]
+				}
+			}
+		};
+
+		window.onload = function() {
+			var ctxLine = document.getElementById('canvasLine').getContext('2d');
+			var ctxBar = document.getElementById('canvasBar').getContext('2d');
+			
+			window.myLine = new Chart(ctxLine, configLine);
+			window.myBar = new Chart(ctxBar, configBar);
+		};
+		
+		/*
+		document.getElementById('randomizeData').addEventListener('click', function() {
+			config.data.datasets.forEach(function(dataset) {
+				dataset.data = dataset.data.map(function() {
+					return randomScalingFactor();
+				});
+
+			});
+
+			window.myLine.update();
+		});
+
+		var colorNames = Object.keys(window.chartColors);
+		document.getElementById('addDataset').addEventListener('click', function() {
+			var colorName = colorNames[config.data.datasets.length % colorNames.length];
+			var newColor = window.chartColors[colorName];
+			var newDataset = {
+				label: 'Dataset ' + config.data.datasets.length,
+				backgroundColor: newColor,
+				borderColor: newColor,
+				data: [],
+				fill: false
+			};
+
+			for (var index = 0; index < config.data.labels.length; ++index) {
+				newDataset.data.push(randomScalingFactor());
+			}
+
+			config.data.datasets.push(newDataset);
+			window.myLine.update();
+		});
+
+		document.getElementById('addData').addEventListener('click', function() {
+			if (config.data.datasets.length > 0) {
+				var month = MONTHS[config.data.labels.length % MONTHS.length];
+				config.data.labels.push(month);
+
+				config.data.datasets.forEach(function(dataset) {
+					dataset.data.push(randomScalingFactor());
+				});
+
+				window.myLine.update();
+			}
+		});
+
+		document.getElementById('removeDataset').addEventListener('click', function() {
+			config.data.datasets.splice(0, 1);
+			window.myLine.update();
+		});
+
+		document.getElementById('removeData').addEventListener('click', function() {
+			config.data.labels.splice(-1, 1); // remove the label first
+
+			config.data.datasets.forEach(function(dataset) {
+				dataset.data.pop();
+			});
+
+			window.myLine.update();
+		});
+		*/
+		
+		//valfed
+		var reset = function () {
+			valueCountArr[0] = 0;
+			scensorArr.splice(0,scensorArr.length);
+			
+			window.myBar.update();
+		};
+		
+		var submit = function () {
+			var inp1  = parseFloat(document.getElementById("1a").value);
+			var inp2  = parseInt(document.getElementById("1b").value);
+			var inp3  = parseInt(document.getElementById("1c").value);
+			
+			setSpanText(inp1,inp2,inp3);
+			
+			//interval
+			refreshInterval = inp1;
+			borderValue = inp2;
+			
+			if(arrLen == inp3){
+				//border
+				dataBorderArr = dataBorderArr.fill(borderValue);	
+			} else {
+			
+				//dataset
+				//inp3 = ( inp3 < 20 ) ? 20 : inp3;
+				if(inp3 < arrLen){
+				
+						labelArr.splice(inp3,arrLen-inp3);
+						dataBorderArr.splice(inp3,arrLen-inp3);
+						
+				} else {
+					
+					for(i=arrLen;i<inp3;i++){
+						labelArr.push(i);
+						dataBorderArr.push(borderValue);
+					}
+					dataBorderArr.fill(borderValue);
+				}
+				
+				arrLen = inp3;
+				window.myLine.update();
+			}
+			
+			return false;
+		};
+
+		var getSensorData = function (){
+			axios.get('http://localhost:8081/getSensorData')
+			.then(response=>{
+				debugger; 
+				var sensorData  = response.data;
+				this.updateChart(sensorData);
+			})
+			.catch(err=>{
+				debugger; 
+				console.log("Error getting data!");
+			});
+		};
+		
+		var updateChart = function (sensorData) {
+			debugger;
+			count = 1;
+			
+			var xVal = scensorArr.length -1;
+			var yVal = scensorArr[xVal];
+			
+			xVal = (xVal > 0) ? xVal : 0;
+			
+			if(updateChart)
+			yVal =  sensorData;		
+
+			//yVal = yVal +  Math.round(20 + Math.random() *(-20-20));			
+			
+			if(yVal < borderValue)
+			valueCountArr[0] = valueCountArr[0]+1;
+			
+			scensorArr.push(yVal);
+			
+			if(scensorArr.length > arrLen){
+				scensorArr.shift();
+			} 			
+			
+			window.myLine.update();
+			window.myBar.update();
+			
+			console.log(refreshInterval);
+			
+			setTimeout(getSensorData, refreshInterval * 1000);
+		};
+
+		setTimeout(function(){getSensorData()}, refreshInterval * 1000);
+
+	</script>
+</body>
+
+</html>
